@@ -232,6 +232,7 @@ export async function handler(
 			};
 		} catch (error) {
 			// Re-throw errors we raised ourselves
+			// eslint-disable-next-line @n8n/community-nodes/require-node-api-error -- re-throws a NodeOperationError this function raised itself a few lines above; not a raw error
 			if (error instanceof NodeOperationError) throw error;
 
 			// Network or timeout error — retry with backoff

@@ -29,7 +29,7 @@ export class Pop implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'POP',
 		name: 'pop',
-		icon: 'file:pop.svg',
+		icon: { light: 'file:pop-light.svg', dark: 'file:pop-dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
@@ -59,7 +59,6 @@ export class Pop implements INodeType {
 	 * Main execution method called by n8n for each workflow run.
 	 * Delegates to the router which handles per-item dispatching and continueOnFail.
 	 */
-	// eslint-disable-next-line @n8n/community-nodes/require-continue-on-fail
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		return await router.call(this);
 	}

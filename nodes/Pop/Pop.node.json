@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-pop.Pop",
+	"node": "@getpopapi/n8n-nodes-pop.Pop",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": [

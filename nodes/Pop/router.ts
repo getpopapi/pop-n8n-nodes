@@ -152,6 +152,7 @@ export async function router(this: IExecuteFunctions) {
 				if (typeof error === 'object' && error !== null) {
 					const err = error as { context?: { itemIndex?: number } };
 					err.context = { ...(err.context ?? {}), itemIndex };
+					// eslint-disable-next-line @n8n/community-nodes/require-node-api-error -- error is already a NodeApiError (from popRequest) or a NodeOperationError (client-side precondition); re-wrapping here would lose the original context
 					throw error;
 				}
 				throw new NodeOperationError(this.getNode(), error as Error, { itemIndex });

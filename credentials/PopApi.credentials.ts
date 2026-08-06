@@ -10,7 +10,7 @@ export class PopApi implements ICredentialType {
 
 	displayName = 'POP API';
 
-	icon = 'file:../nodes/Pop/pop.svg' as const;
+	icon = 'file:../nodes/Pop/pop-light.svg' as const;
 
 	documentationUrl = 'https://github.com/getpopapi/n8n-nodes-pop#authentication';
 

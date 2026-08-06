@@ -87,27 +87,38 @@ export function makeInvoiceFormFields(operation: InvoiceOperation): INodePropert
 			displayOptions: showForm,
 			description: 'FatturaPA / Peppol filename (e.g. IT99900088876_00009)',
 		},
-		// eslint-disable-next-line n8n-nodes-base/node-param-default-missing
-		{
-			displayName: 'Customer Type',
-			name: 'customerType',
-			type: 'options',
-			required: true,
-			default: operation === 'createPeppolInvoiceUbl' ? 'company' : 'private',
-			options:
-				operation === 'createPeppolInvoiceUbl'
-					? [
+		...(operation === 'createPeppolInvoiceUbl'
+			? [
+					{
+						displayName: 'Customer Type',
+						name: 'customerType',
+						type: 'options' as const,
+						required: true,
+						default: 'company',
+						options: [
 							{ name: 'Company', value: 'company' },
 							{ name: 'Freelance', value: 'freelance' },
-						]
-					: [
+						],
+						displayOptions: showForm,
+						description: 'Type of the recipient customer',
+					},
+				]
+			: [
+					{
+						displayName: 'Customer Type',
+						name: 'customerType',
+						type: 'options' as const,
+						required: true,
+						default: 'private',
+						options: [
 							{ name: 'Private', value: 'private' },
 							{ name: 'Company', value: 'company' },
 							{ name: 'Freelance', value: 'freelance' },
 						],
-			displayOptions: showForm,
-			description: 'Type of the recipient customer',
-		},
+						displayOptions: showForm,
+						description: 'Type of the recipient customer',
+					},
+				]),
 		...(operation === 'createSdiInvoiceXml'
 			? [
 					{
