@@ -1,6 +1,6 @@
 {
   "name": "@getpopapi/n8n-nodes-pop",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "n8n community node for POP Cloud API (v2) — Italian SdI and Peppol e-invoicing",
   "homepage": "https://github.com/getpopapi/n8n-nodes-pop#readme",
   "license": "MIT",
@@ -41,7 +41,7 @@
     ]
   },
   "devDependencies": {
-    "@n8n/node-cli": "0.27.0",
+    "@n8n/node-cli": "^0.43.1",
     "eslint": "9.32.0",
     "n8n-workflow": "^2.13.1",
     "prettier": "3.6.2",
