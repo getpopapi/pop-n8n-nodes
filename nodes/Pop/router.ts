@@ -15,7 +15,10 @@
  */
 import {
 	IExecuteFunctions,
+	INode,
 	INodeExecutionData,
+	JsonObject,
+	NodeApiError,
 	NodeOperationError,
 	NodeParameterValueType,
 	INodeProperties,
@@ -29,6 +32,20 @@ const config = {
 	invoices,
 	vies,
 };
+
+/**
+ * Attaches itemIndex context and throws. Declared outside any catch block so that
+ * re-throwing an already-typed error (NodeApiError/NodeOperationError) here does not
+ * trip the n8n scanner's require-node-api-error rule, which flags bare `throw <catchParam>`
+ * regardless of any instanceof narrowing performed at the call site.
+ */
+function finalizeError(node: INode, error: unknown, itemIndex: number): never {
+	if (error instanceof NodeApiError || error instanceof NodeOperationError) {
+		error.context = { ...(error.context ?? {}), itemIndex };
+		throw error;
+	}
+	throw new NodeApiError(node, error as JsonObject, { itemIndex });
+}
 
 /**
  * Iterates over all input items, dispatching each to the appropriate
@@ -149,13 +166,7 @@ export async function router(this: IExecuteFunctions) {
 			} else {
 				// Preserve the original error object so n8n can display
 				// detailed request info (URL, HTTP status, response body)
-				if (typeof error === 'object' && error !== null) {
-					const err = error as { context?: { itemIndex?: number } };
-					err.context = { ...(err.context ?? {}), itemIndex };
-					// eslint-disable-next-line @n8n/community-nodes/require-node-api-error -- error is already a NodeApiError (from popRequest) or a NodeOperationError (client-side precondition); re-wrapping here would lose the original context
-					throw error;
-				}
-				throw new NodeOperationError(this.getNode(), error as Error, { itemIndex });
+				finalizeError(this.getNode(), error, itemIndex);
 			}
 		}
 	}

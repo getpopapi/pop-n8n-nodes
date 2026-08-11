@@ -184,8 +184,10 @@ export async function handler(
 	const t0 = Date.now();
 
 	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+		let xmlResponse: string;
+
 		try {
-			const xmlResponse = (await this.helpers.httpRequest({
+			xmlResponse = (await this.helpers.httpRequest({
 				method: 'POST',
 				url: VIES_ENDPOINT,
 				headers: {
@@ -196,48 +198,10 @@ export async function handler(
 				json: false,
 				timeout: 15000,
 			})) as string;
-
-			const parsed = parseViesResponse(xmlResponse);
-
-			// Retryable fault: back off and try again (unless we've exhausted attempts)
-			if (parsed.fault && RETRYABLE_FAULTS.some((k) => parsed.fault!.includes(k))) {
-				if (attempt < MAX_ATTEMPTS) {
-						await sleep();
-					continue;
-				}
-				// Exhausted retries for a retryable fault
-				throw new NodeOperationError(
-					this.getNode(),
-					`VIES service unavailable after ${attempt} attempts: ${parsed.fault}`,
-				);
-			}
-
-			// Non-retryable SOAP fault (e.g. INVALID_INPUT, VAT_BLOCKED)
-			if (parsed.fault) {
-				throw new NodeOperationError(
-					this.getNode(),
-					`VIES returned an error: ${parsed.fault}`,
-				);
-			}
-
-			return {
-				countryCode,
-				vatNumber,
-				valid: parsed.valid,
-				name: parsed.name,
-				address: parsed.address,
-				requestDate: parsed.requestDate,
-				attempts: attempt,
-				latencyMs: Date.now() - t0,
-			};
 		} catch (error) {
-			// Re-throw errors we raised ourselves
-			// eslint-disable-next-line @n8n/community-nodes/require-node-api-error -- re-throws a NodeOperationError this function raised itself a few lines above; not a raw error
-			if (error instanceof NodeOperationError) throw error;
-
 			// Network or timeout error — retry with backoff
 			if (attempt < MAX_ATTEMPTS) {
-					await sleep();
+				await sleep();
 				continue;
 			}
 
@@ -246,6 +210,40 @@ export async function handler(
 				`VIES request failed after ${attempt} attempts: ${(error as Error).message}`,
 			);
 		}
+
+		const parsed = parseViesResponse(xmlResponse);
+
+		// Retryable fault: back off and try again (unless we've exhausted attempts)
+		if (parsed.fault && RETRYABLE_FAULTS.some((k) => parsed.fault!.includes(k))) {
+			if (attempt < MAX_ATTEMPTS) {
+				await sleep();
+				continue;
+			}
+			// Exhausted retries for a retryable fault
+			throw new NodeOperationError(
+				this.getNode(),
+				`VIES service unavailable after ${attempt} attempts: ${parsed.fault}`,
+			);
+		}
+
+		// Non-retryable SOAP fault (e.g. INVALID_INPUT, VAT_BLOCKED)
+		if (parsed.fault) {
+			throw new NodeOperationError(
+				this.getNode(),
+				`VIES returned an error: ${parsed.fault}`,
+			);
+		}
+
+		return {
+			countryCode,
+			vatNumber,
+			valid: parsed.valid,
+			name: parsed.name,
+			address: parsed.address,
+			requestDate: parsed.requestDate,
+			attempts: attempt,
+			latencyMs: Date.now() - t0,
+		};
 	}
 
 	// Unreachable — loop always returns or throws — satisfies TypeScript
